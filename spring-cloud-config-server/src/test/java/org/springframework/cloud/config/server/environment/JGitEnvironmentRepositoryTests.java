@@ -1137,7 +1137,7 @@ public class JGitEnvironmentRepositoryTests {
 		}
 
 		@Override
-		public CloneCommand getCloneCommandByCloneRepository() {
+		public CloneCommand getCloneCommandByCloneRepository(boolean cloneSubmodules) {
 			return this.mockCloneCommand;
 		}
 

@@ -141,6 +141,8 @@ public class JGitEnvironmentRepository extends AbstractScmEnvironmentRepository
 	 */
 	private boolean deleteUntrackedBranches;
 
+	private boolean cloneSubmodules;
+
 	/**
 	 * Flag to indicate that SSL certificate validation should be bypassed when
 	 * communicating with a repository served over an HTTPS connection.
@@ -157,6 +159,7 @@ public class JGitEnvironmentRepository extends AbstractScmEnvironmentRepository
 		this.deleteUntrackedBranches = properties.isDeleteUntrackedBranches();
 		this.refreshRate = properties.getRefreshRate();
 		this.skipSslValidation = properties.isSkipSslValidation();
+		this.cloneSubmodules = properties.isCloneSubmodules();
 	}
 
 	public boolean isCloneOnStart() {
@@ -275,12 +278,18 @@ public class JGitEnvironmentRepository extends AbstractScmEnvironmentRepository
 				// checkout after fetch so we can get any new branches, tags, ect.
 				checkout(git, label);
 				tryMerge(git, label);
+				if (this.cloneSubmodules){
+					syncAndUpdateSubmnodules(git);
+				}
 			}
 			else {
 				// nothing to update so just checkout and merge.
 				// Merge because remote branch could have been updated before
 				checkout(git, label);
 				tryMerge(git, label);
+				if (this.cloneSubmodules){
+					syncAndUpdateSubmnodules(git);
+				}
 			}
 			// always return what is currently HEAD as the version
 			return git.getRepository().findRef("HEAD").getObjectId().getName();
@@ -308,6 +317,11 @@ public class JGitEnvironmentRepository extends AbstractScmEnvironmentRepository
 				this.logger.warn("Could not close git repository", e);
 			}
 		}
+	}
+
+	private void syncAndUpdateSubmnodules(Git git) throws GitAPIException {
+		git.submoduleSync().call();
+		git.submoduleUpdate().call();
 	}
 
 	private void tryMerge(Git git, String label) {
@@ -582,8 +596,9 @@ public class JGitEnvironmentRepository extends AbstractScmEnvironmentRepository
 	}
 
 	private Git cloneToBasedir() throws GitAPIException {
-		CloneCommand clone = this.gitFactory.getCloneCommandByCloneRepository()
-				.setURI(getUri()).setDirectory(getBasedir());
+		CloneCommand clone = this.gitFactory
+				.getCloneCommandByCloneRepository(this.cloneSubmodules).setURI(getUri())
+				.setDirectory(getBasedir());
 		configureCommand(clone);
 		try {
 			return clone.call();
@@ -710,8 +725,11 @@ public class JGitEnvironmentRepository extends AbstractScmEnvironmentRepository
 			return git;
 		}
 
-		public CloneCommand getCloneCommandByCloneRepository() {
+		public CloneCommand getCloneCommandByCloneRepository(boolean cloneSubmodules) {
 			CloneCommand command = Git.cloneRepository();
+
+			command.setCloneSubmodules(cloneSubmodules);
+
 			return command;
 		}
 

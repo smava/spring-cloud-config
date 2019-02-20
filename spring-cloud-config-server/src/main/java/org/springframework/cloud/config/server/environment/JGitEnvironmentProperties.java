@@ -35,6 +35,12 @@ public class JGitEnvironmentProperties extends AbstractScmAccessorProperties
 	private static final String DEFAULT_LABEL = "master";
 
 	/**
+	 * Flag to indicate if the repository should try to pull submodules when recovering
+	 * configuration changes.
+	 */
+	private boolean cloneSubmodules = false;
+
+	/**
 	 * Flag to indicate that the repository should be cloned on startup (not on demand).
 	 * Generally leads to slower startup but faster first query.
 	 */
@@ -117,6 +123,14 @@ public class JGitEnvironmentProperties extends AbstractScmAccessorProperties
 	public JGitEnvironmentProperties() {
 		super();
 		setDefaultLabel(DEFAULT_LABEL);
+	}
+
+	public boolean isCloneSubmodules() {
+		return this.cloneSubmodules;
+	}
+
+	public void setCloneSubmodules(boolean cloneSubmodules) {
+		this.cloneSubmodules = cloneSubmodules;
 	}
 
 	public boolean isCloneOnStart() {

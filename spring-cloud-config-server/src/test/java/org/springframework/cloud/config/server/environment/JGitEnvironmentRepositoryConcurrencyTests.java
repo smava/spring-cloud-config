@@ -196,7 +196,7 @@ public class JGitEnvironmentRepositoryConcurrencyTests {
 		}
 
 		@Override
-		public CloneCommand getCloneCommandByCloneRepository() {
+		public CloneCommand getCloneCommandByCloneRepository(boolean cloneSubmodules) {
 			return new DelayedCloneCommand();
 		}
 
